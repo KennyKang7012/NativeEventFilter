@@ -5,19 +5,24 @@
 #include <windows.h>
 #pragma comment(lib, "user32.lib")
 
+#include <WtsApi32.h>
+#pragma comment(lib, "Wtsapi32.lib")
+
 //自定義事件編號
-#define WM_POWER_STATUS_MSG    (WM_USER+1001)
+#define WM_POWER_STATUS_MSG    (WM_USER + 1001)
 
 Dialog::Dialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::Dialog)
 {
     ui->setupUi(this);
+    WTSRegisterSessionNotification((HWND)this->winId(), NOTIFY_FOR_THIS_SESSION);
 }
 
 Dialog::~Dialog()
 {
     delete ui;
+    WTSUnRegisterSessionNotification((HWND)this->winId());
 }
 
 bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long *result)
@@ -84,7 +89,7 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
              qDebug() << "WM_POWER_STATUS_MSG received\n";
              CheckBatteryStatus();
 
-             //使用PostMessage需要接到事件後回覆已處理完畢
+             //使用PostMessage需要接到事件後回覆已處理完畢，不再繼續傳遞
              //return true;
          }
 
@@ -99,8 +104,63 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
          {
             qDebug() << "WM_QUERYENDSESSION received\n";
          }
-    }
 
+         if (pMsg->message == WM_WTSSESSION_CHANGE)
+         {
+             qDebug() << "pMsg->wParam =" << pMsg->wParam;
+             switch (pMsg->wParam)
+             {
+                case WTS_CONSOLE_CONNECT:
+                    qDebug() << "WTS_CONSOLE_CONNECT received\n";
+                    break;
+
+                 case WTS_CONSOLE_DISCONNECT:
+                     qDebug() << "WTS_CONSOLE_DISCONNECT received\n";
+                     break;
+
+                 case WTS_REMOTE_CONNECT:
+                     qDebug() << "WTS_REMOTE_CONNECT received\n";
+                     break;
+
+                 case WTS_REMOTE_DISCONNECT:
+                     qDebug() << "WTS_REMOTE_DISCONNECT received\n";
+                     break;
+
+                 case WTS_SESSION_LOGON:
+                     qDebug() << "WTS_SESSION_LOGON received\n";
+                     break;
+
+                 case WTS_SESSION_LOGOFF:
+                     qDebug() << "WTS_SESSION_LOGOFF received\n";
+                     break;
+
+                 case WTS_SESSION_LOCK:
+                     qDebug() << "WTS_SESSION_LOCK received\n";
+                     break;
+
+                 case WTS_SESSION_UNLOCK:
+                     qDebug() << "WTS_SESSION_UNLOCK received\n";
+                     break;
+
+                 case WTS_SESSION_REMOTE_CONTROL:
+                     qDebug() << "WTS_SESSION_REMOTE_CONTROL received\n";
+                     break;
+
+                 case WTS_SESSION_CREATE:
+                     qDebug() << "WTS_SESSION_CREATE received\n";
+                     break;
+
+                 case WTS_SESSION_TERMINATE:
+                     qDebug() << "WTS_SESSION_TERMINATE received\n";
+                     break;
+
+                 default:
+                     qDebug() << "Not Define\n";
+                     break;
+             }
+             return true;
+         }
+    }
 #elif defined(Q_WS_X11) || defined(Q_OS_LINUX)
     // Linux OS
     if (eventType == "xcb_generic_event_t")
