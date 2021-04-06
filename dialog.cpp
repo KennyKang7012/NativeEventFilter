@@ -56,30 +56,34 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
                     qDebug() << "PBT_APMPOWERSTATUSCHANGE received\n";
                     break;
 
-                 case PBT_APMRESUMEAUTOMATIC:
-                     qDebug() << "PBT_APMRESUMEAUTOMATIC received\n";
-                     //通過主窗口類名尋找主窗口句炳
-                     SendMessageW((HWND)this->winId(), WM_POWER_STATUS_MSG, 0, 0);
+                case PBT_APMRESUMEAUTOMATIC:
+                    qDebug() << "PBT_APMRESUMEAUTOMATIC received\n";
+                    //通過主窗口類名尋找主窗口句炳
+                    SendMessageW((HWND)this->winId(), WM_POWER_STATUS_MSG, 0, 0);
 
-                     //使用PostMessage需要接到事件後回覆已處理完畢
-                     //PostMessageW((HWND)this->winId(), WM_POWER_STATUS_MSG, 0, 0);
-                     break;
+                    //使用PostMessage需要接到事件後回覆已處理完畢
+                    //PostMessageW((HWND)this->winId(), WM_POWER_STATUS_MSG, 0, 0);
+                    break;
 
-                 case PBT_APMRESUMESUSPEND:
-                     qDebug() << "PBT_APMRESUMESUSPEND received\n";
-                     break;
+                case PBT_APMRESUMESUSPEND:
+                    qDebug() << "PBT_APMRESUMESUSPEND received\n";
+                    break;
 
-                 case PBT_APMSUSPEND:
-                     qDebug() << "PBT_APMSUSPEND received\n";
-                     break;
+                case PBT_APMSUSPEND:
+                    qDebug() << "PBT_APMSUSPEND received\n";
+                    break;
 
-                 case PBT_APMQUERYSUSPEND:
-                     qDebug() << "PBT_APMQUERYSUSPEND received\n";
-                     break;
+                case PBT_APMQUERYSUSPEND:
+                    qDebug() << "PBT_APMQUERYSUSPEND received\n";
+                    break;
 
-                 default:
-                     qDebug() << "Not Define\n";
-                     break;
+                case PBT_POWERSETTINGCHANGE:
+                    qDebug() << "PBT_POWERSETTINGCHANGE received\n";
+                    break;
+
+                default:
+                    qDebug() << "Not Define\n";
+                    break;
              }
          }
 
