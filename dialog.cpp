@@ -8,7 +8,7 @@
 #include <WtsApi32.h>
 #pragma comment(lib, "Wtsapi32.lib")
 
-//自定義事件編號
+// 自定義事件編號
 #define WM_POWER_STATUS_MSG    (WM_USER + 1001)
 
 Dialog::Dialog(QWidget *parent)
@@ -17,6 +17,21 @@ Dialog::Dialog(QWidget *parent)
 {
     ui->setupUi(this);
     WTSRegisterSessionNotification((HWND)this->winId(), NOTIFY_FOR_THIS_SESSION);
+
+    // 變更Window Title
+    QString strWindowTitle = "NativeEventFilter Dialog";
+    setWindowTitle(strWindowTitle);
+    QString strGetWindowTitle;
+    strGetWindowTitle = windowTitle();
+    qDebug() <<"strGetWindowTitle:" << strGetWindowTitle;
+
+    string strTitle;
+    strTitle = q2s(strGetWindowTitle);
+    qDebug() << "strTitle.c_str():" << strTitle.c_str();
+    qDebug() << "strTitle.data():" << strTitle.data();
+
+    getWindowTitle();
+    QStringformat();
 }
 
 Dialog::~Dialog()
@@ -34,17 +49,17 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
         MSG *pMsg = reinterpret_cast<MSG *>(message);
         //MSG *pMsg = static_cast<MSG *>(message);
 
-        //視窗的非客戶區域
+        // 視窗的非客戶區域
         if (pMsg->message == WM_NCMOUSEMOVE)
         {
-            //獲取系統滑鼠游標移動
+            // 獲取系統滑鼠游標移動
             qDebug() << "(WM_NCMOUSEMOVE) nativeEventFilter:" << "(" << pMsg->pt.x << ","   << pMsg->pt.y << ")";
         }
 
-        //視窗的客戶區域
+        // 視窗的客戶區域
         if (pMsg->message == WM_MOUSEMOVE)
         {
-            //獲取系統滑鼠游標移動
+            // 獲取系統滑鼠游標移動
             qDebug() << "(WM_MOUSEMOVE) nativeEventFilter:" << "(" << pMsg->pt.x << ","   << pMsg->pt.y << ")";
         }
 
@@ -58,10 +73,10 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
 
                 case PBT_APMRESUMEAUTOMATIC:
                     qDebug() << "PBT_APMRESUMEAUTOMATIC received\n";
-                    //通過主窗口類名尋找主窗口句炳
+                    // 通過主窗口類名尋找主窗口句炳
                     SendMessageW((HWND)this->winId(), WM_POWER_STATUS_MSG, 0, 0);
 
-                    //使用PostMessage需要接到事件後回覆已處理完畢
+                    // 使用PostMessage需要接到事件後回覆已處理完畢
                     //PostMessageW((HWND)this->winId(), WM_POWER_STATUS_MSG, 0, 0);
                     break;
 
@@ -87,13 +102,13 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
              }
          }
 
-         //自定義事件編號
+         // 自定義事件編號
          if(pMsg->message == WM_POWER_STATUS_MSG)
          {
              qDebug() << "WM_POWER_STATUS_MSG received\n";
              CheckBatteryStatus();
 
-             //使用PostMessage需要接到事件後回覆已處理完畢，不再繼續傳遞
+             // 使用PostMessage需要接到事件後回覆已處理完畢，不再繼續傳遞
              //return true;
          }
 
@@ -103,7 +118,7 @@ bool Dialog::nativeEventFilter(const QByteArray &eventType, void *message, long 
             qDebug() << "WM_ENDSESSION received\n";
          }
 
-         //關機、重啟、登出
+         // 關機、重啟、登出
          if(pMsg->message == WM_QUERYENDSESSION)
          {
             qDebug() << "WM_QUERYENDSESSION received\n";
@@ -182,7 +197,7 @@ void Dialog::CheckBatteryStatus()
     GetSystemPowerStatus(&ps);
 
     int nLife = 0;
-    //是否使用交流電源
+    // 是否使用交流電源
     if ( ps.ACLineStatus != AC_LINE_ONLINE )
     {
        if ( ps.BatteryFlag != BATTERY_FLAG_NO_BATTERY && ps.BatteryFlag != BATTERY_FLAG_UNKNOWN )
@@ -204,4 +219,59 @@ void Dialog::CheckBatteryStatus()
         // 有電源供電
         qDebug() << "Have Power Supply";
      }
+}
+
+void Dialog::getWindowTitle()
+{
+// 在Windows裡，為了同時適用於ASCII字串與Unicode字串的處理 (以是否有定義"UNICODE"做為區別)，特別定義了TCHAR型態，在有定義UNICODE時視同WCHAR，否則便是char
+#ifdef  _UNICODE
+    qDebug() << "is WCHAR";
+#else
+    qDebug() << "is char";
+#endif
+
+    TCHAR titleText[MAX_PATH] = {0};
+    HWND hWnd = (HWND)this->winId();
+    GetWindowText(hWnd, titleText, MAX_PATH);
+
+    // 獲取字串長度
+    int iLength = WideCharToMultiByte(CP_ACP, 0, titleText, -1, NULL, 0, NULL, NULL);
+
+    // 將tchar值賦給char
+    char ansiStr[MAX_PATH] = {0};
+    WideCharToMultiByte(CP_ACP, 0, titleText, -1, ansiStr, iLength, NULL, NULL);
+    qDebug() << "ansiStr:" <<  ansiStr;
+
+    // 將tchar值賦給char
+    // 動態配置記憶體記得釋放記憶體
+    //char* ansiStr = new char[iLength+1];
+    //ansiStr[0] = '\0';
+
+    //WideCharToMultiByte(CP_ACP, 0, titleText, -1, ansiStr, iLength, NULL, NULL);
+    //qDebug() << "ansiStr:" <<  ansiStr;
+
+    // 釋放動態記憶體
+    //if(ansiStr)
+    //  delete [] ansiStr;
+}
+
+// 將 string 轉換成 QString
+QString Dialog::s2q(const string &s)
+{
+    return QString(QString::fromLocal8Bit(s.c_str()));
+}
+
+// 將 QString 轉換成 string
+string Dialog::q2s(const QString &s)
+{
+    return string((const char *)s.toLocal8Bit());
+}
+
+void Dialog::QStringformat()
+{
+    // Qt中函數替換MFC中CString.format()函數
+    char buf[128] = { 0 };
+    ::snprintf(buf, 128, "%lld", 123456789LL);
+    QString str = QString::fromLatin1(buf);
+    qDebug() << "QStringformat" << "str:" <<  str;
 }
