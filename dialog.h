@@ -32,6 +32,9 @@ public:
 
     void QStringformat();
 
+private slots:
+    void on_pushButton_clicked();
+
 private:
     Ui::Dialog *ui;
 };

@@ -272,6 +272,69 @@ void Dialog::QStringformat()
     // Qt中函數替換MFC中CString.format()函數
     char buf[128] = { 0 };
     ::snprintf(buf, 128, "%lld", 123456789LL);
-    QString str = QString::fromLatin1(buf);
-    qDebug() << "QStringformat" << "str:" <<  str;
+    QString str1 = QString::fromLatin1(buf);
+    qDebug() << "QStringformat" << "str1:" <<  str1;
+
+    QString str2 = QString("%1").arg(123456789LL);
+    qDebug() << "QStringformat" << "str2:" <<  str2;
+
+    char tmp[128] = { 0 };
+    //sprintf(tmp, "-w \"%s\"", "Dialog");
+    sprintf(tmp, "%s", "-w \"Dialog\"");
+    QString str3 = QString::fromLatin1(tmp);
+    qDebug() << "QStringformat" << "str3:" <<  str3;
+
+    string strStr3;
+    strStr3 = q2s(str3);
+    qDebug() << "strStr3.c_str():" << strStr3.c_str();
+
+    char tmpbuf[128] = { 0 };
+    ::snprintf(tmpbuf, 128, "%s", "-w \"Dialog\"");
+    QString str4 = QString::fromLatin1(tmpbuf);
+    qDebug() << "QStringformat" << "str4:" <<  str4;
+    string strStr4;
+    strStr4 = q2s(str4);
+    qDebug() << "strStr4.c_str():" << strStr4.c_str();
+
+    QString str5 = QString("%1").arg("-w \"Dialog\"");
+    qDebug() << "QStringformat" << "str5:" << str5;
+    string strStr5;
+    strStr5 = q2s(str5);
+    qDebug() << "strStr5.c_str():" << strStr5.c_str();
+}
+
+void Dialog::on_pushButton_clicked()
+{
+    QString strGetWindowTitle;
+    strGetWindowTitle = windowTitle();
+    qDebug() <<"strGetWindowTitle:" << strGetWindowTitle;
+
+    string strTitle;
+    strTitle = q2s(strGetWindowTitle);
+    qDebug() << "strTitle.c_str():" << strTitle.c_str();
+    qDebug() << "strTitle.data():" << strTitle.data();
+
+    QString str5 = QString("%1").arg("-w \"Dialog\"");
+    qDebug() << "QStringformat" << "str5:" << str5;
+    string strStr5;
+    strStr5 = q2s(str5);
+    qDebug() << "strStr5.c_str():" << strStr5.c_str();
+
+    const size_t len = strStr5.length() + 1;
+    wchar_t *wcstring = new wchar_t[len];
+
+    //string to wchar_t *
+    swprintf(wcstring, len, L"%S", strStr5.c_str());
+
+    //wchar_t * to QString
+    QString qStrout = QString::fromWCharArray(wcstring);
+    qDebug() << "wcstring" << qStrout;
+
+    ShellExecute(NULL, L"open", L"notepad.exe", NULL, wcstring, SW_SHOW);
+    if(wcstring)
+        delete [] wcstring;
+    qDebug() << GetLastError();
+
+    ShellExecute(NULL, L"open", L"calc.exe", NULL, NULL, SW_SHOWNORMAL);
+    qDebug() << GetLastError();
 }
